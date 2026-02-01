@@ -1,6 +1,17 @@
 # 🧮 Math Dashboard
 
-A Streamlit-based dashboard for common math operations. Easily extensible — add new operations by editing a single file.
+A full-stack math dashboard with a **FastAPI** backend and **Vue 3** frontend.
+Easily extensible — add new operations by editing a single file.
+
+## Architecture
+
+```
+┌─────────────┐     /api/*     ┌─────────────┐
+│   Vue 3     │  ──────────►   │   FastAPI    │
+│  (Nginx)    │  ◄──────────   │   (Uvicorn)  │
+│  port 8080  │    JSON        │  port 8000   │
+└─────────────┘                └─────────────┘
+```
 
 ## Operations
 
@@ -17,38 +28,62 @@ A Streamlit-based dashboard for common math operations. Easily extensible — ad
 | LCM            | Least common multiple                |
 | Modulo         | Remainder of A ÷ B                   |
 
-## Run Locally (venv)
-
-```bash
-# Create and activate virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Run the dashboard (default port 8501)
-streamlit run app/main.py --server.port=8501 --server.headless=true
-```
-
-Open http://localhost:8501
-
-## Run with Docker Compose
+## Run with Docker Compose (recommended)
 
 ```bash
 docker compose up --build -d
 ```
 
-Open http://localhost:8501
+- **Frontend:** http://localhost:8080
+- **Backend API:** http://localhost:8000
+- **API docs (Swagger):** http://localhost:8000/docs
 
 Stop:
 ```bash
 docker compose down
 ```
 
+## Run Locally (development)
+
+### Backend
+
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Opens at http://localhost:5173 with API proxy to :8000.
+
+## API Endpoints
+
+| Method | Path              | Description              |
+|--------|-------------------|--------------------------|
+| GET    | `/api/operations` | List available operations |
+| POST   | `/api/calculate`  | Execute a calculation     |
+| GET    | `/health`         | Health check              |
+
+### Example request
+
+```bash
+curl -X POST http://localhost:8000/api/calculate \
+  -H "Content-Type: application/json" \
+  -d '{"operation": "factorial", "params": {"n": 10}}'
+```
+
 ## Adding New Operations
 
-Edit `app/operations.py`:
+Edit `backend/app/operations.py`:
 
 1. Write a function:
 ```python
@@ -58,27 +93,36 @@ def square_root(n: float) -> float:
 
 2. Register it in `OPERATIONS`:
 ```python
-"Square Root": {
+"square_root": {
+    "label": "Square Root",
     "description": "√n",
     "params": [{"name": "n", "label": "N", "type": "float", "default": 4.0}],
     "func": square_root,
 },
 ```
 
-That's it — the UI picks it up automatically.
+The backend serves it automatically, and the frontend picks it up dynamically — no frontend changes needed.
 
 ## Project Structure
 
 ```
 math-dashboard/
-├── app/
-│   ├── __init__.py
-│   ├── main.py          # Streamlit UI
-│   └── operations.py    # Operation registry (add new ops here)
+├── backend/
+│   ├── app/
+│   │   ├── __init__.py
+│   │   ├── main.py          # FastAPI app
+│   │   ├── operations.py    # Operation registry
+│   │   └── routes.py        # API routes
+│   ├── Dockerfile
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── App.vue          # Main Vue component
+│   │   └── main.js
+│   ├── Dockerfile
+│   ├── nginx.conf
+│   ├── vite.config.js
+│   └── package.json
 ├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-├── .gitignore
-├── .dockerignore
 └── README.md
 ```
