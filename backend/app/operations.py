@@ -9,6 +9,7 @@ To add a new operation:
 
 import math
 from collections import OrderedDict
+from typing import Any
 
 
 # ---------------------------------------------------------------------------
@@ -41,15 +42,19 @@ def factorial(n: int) -> int:
     n = int(n)
     if n < 0:
         raise ValueError("Factorial is not defined for negative numbers")
+    if n > 170:
+        raise ValueError("Factorial input too large (max 170)")
     return math.factorial(n)
 
 
 def fibonacci(n: int) -> str:
-    """Return first n Fibonacci numbers."""
+    """Return first n Fibonacci numbers as comma-separated string."""
     n = int(n)
     if n <= 0:
         raise ValueError("n must be positive")
-    seq = []
+    if n > 1000:
+        raise ValueError("n too large (max 1000)")
+    seq: list[int] = []
     a, b = 0, 1
     for _ in range(n):
         seq.append(a)
@@ -72,78 +77,88 @@ def modulo(a: int, b: int) -> int:
 
 
 # ---------------------------------------------------------------------------
-# Two-operand param template helpers
+# Param template helpers
 # ---------------------------------------------------------------------------
 
-def _two_floats(label_a="A", label_b="B"):
+def _two_floats(label_a: str = "A", label_b: str = "B") -> list[dict]:
     return [
         {"name": "a", "label": label_a, "type": "float", "default": 0.0},
         {"name": "b", "label": label_b, "type": "float", "default": 0.0},
     ]
 
 
-def _two_ints(label_a="A", label_b="B"):
+def _two_ints(label_a: str = "A", label_b: str = "B") -> list[dict]:
     return [
         {"name": "a", "label": label_a, "type": "int", "default": 0},
         {"name": "b", "label": label_b, "type": "int", "default": 0},
     ]
 
 
-def _single_int(label="N", default=5):
+def _single_int(label: str = "N", default: int = 5) -> list[dict]:
     return [{"name": "n", "label": label, "type": "int", "default": default}]
 
 
 # ---------------------------------------------------------------------------
-# Operation registry (OrderedDict to keep sidebar order stable)
+# Operation registry
 # ---------------------------------------------------------------------------
 
-OPERATIONS: dict = OrderedDict({
-    "Addition": {
+OPERATIONS: dict[str, dict[str, Any]] = OrderedDict({
+    "addition": {
+        "label": "Addition",
         "description": "Sum of two numbers: A + B",
         "params": _two_floats(),
         "func": addition,
     },
-    "Subtraction": {
+    "subtraction": {
+        "label": "Subtraction",
         "description": "Difference of two numbers: A − B",
         "params": _two_floats(),
         "func": subtraction,
     },
-    "Multiplication": {
+    "multiplication": {
+        "label": "Multiplication",
         "description": "Product of two numbers: A × B",
         "params": _two_floats(),
         "func": multiplication,
     },
-    "Division": {
+    "division": {
+        "label": "Division",
         "description": "Quotient of two numbers: A ÷ B",
         "params": _two_floats(),
         "func": division,
     },
-    "Power": {
+    "power": {
+        "label": "Power",
         "description": "Exponentiation: base ^ exponent",
         "params": _two_floats("Base", "Exponent"),
         "func": power,
     },
-    "Factorial": {
+    "factorial": {
+        "label": "Factorial",
         "description": "n! — product of all positive integers up to n",
         "params": _single_int("N", 5),
         "func": factorial,
     },
-    "Fibonacci": {
+    "fibonacci": {
+        "label": "Fibonacci",
         "description": "First N numbers in the Fibonacci sequence",
         "params": _single_int("N (count)", 10),
         "func": fibonacci,
     },
-    "GCD": {
+    "gcd": {
+        "label": "GCD",
         "description": "Greatest common divisor of A and B",
         "params": _two_ints(),
         "func": gcd,
     },
-    "LCM": {
+    "lcm": {
+        "label": "LCM",
         "description": "Least common multiple of A and B",
         "params": _two_ints(),
         "func": lcm,
     },
-    "Modulo": {
+    "modulo": {
+        "label": "Modulo",
         "description": "Remainder of A ÷ B",
         "params": _two_ints(),
         "func": modulo,
